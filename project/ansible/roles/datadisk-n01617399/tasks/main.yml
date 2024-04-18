@@ -1,0 +1,169 @@
+# ---
+# # tasks/main.yml
+# - name: Get disk size
+#   command: fdisk -l /dev/sdc
+#   register: disk_info
+
+# - set_fact:
+#     disk_size: "{{ (disk_info.stdout_lines[2].split()[2]|int) / 1024 }}"
+
+# - name: Unmount /dev/sdc1 if already mounted
+#   command: umount /dev/sdc1
+#   ignore_errors: yes
+
+# - name: Partition data disk
+#   parted:
+#     device: /dev/sdc
+#     number: 1
+#     state: present
+#     part_start: 0%
+#     part_end: "{{ part1_size }}GB"
+#     fs_type: xfs
+#   become: yes
+# - name: Partition data disk (part2)
+#   parted:
+#     device: /dev/sdc
+#     number: 2
+#     state: present
+#     part_start: "{{ part1_size }}GB"
+#     part_end: "100%"
+#     fs_type: ext4
+#   become: yes
+# - name: Create /part1 directory
+#   file:
+#     path: /part1
+#     state: directory
+
+# - name: Create /part2 directory
+#   file:
+#     path: /part2
+#     state: directory
+
+# - name: Create XFS filesystem on first partition
+#   filesystem:
+#     force: yes
+#     fstype: xfs
+#     dev: /dev/sdc1
+
+# - name: Mount first partition
+#   mount:
+#     path: /part1
+#     src: /dev/sdc1
+#     fstype: xfs
+#     state: mounted
+
+# - name: Create EXT4 filesystem on second partition
+#   filesystem:
+#     fstype: ext4
+#     force: yes
+#     dev: /dev/sdc2
+
+# - name: Mount second partition
+#   mount:
+#     path: /part2
+#     src: /dev/sdc2
+#     fstype: ext4
+#     state: mounted
+
+# - name: Persist first partition mount
+#   lineinfile:
+#     path: /etc/fstab
+#     line: "/dev/sdc1 /part1 xfs defaults 0 0"
+#     state: present
+
+# - name: Persist second partition mount
+#   lineinfile:
+#     path: /etc/fstab
+#     line: "/dev/sdc2 /part2 ext4 defaults 0 0"
+#     state: present
+
+# tasks/main.yml
+- name: Get disk size
+  command: fdisk -l /dev/sdc
+  register: disk_info
+
+- set_fact:
+    disk_size: "{{ (disk_info.stdout_lines[2].split()[2]|int) / 1024 }}"
+
+- name: Unmount /dev/sdc1 if already mounted
+  command: umount /dev/sdc1
+  ignore_errors: yes
+
+- name: Unmount /dev/sdc2 if already mounted
+  command: umount /dev/sdc2
+  ignore_errors: yes
+
+- name: Partition data disk
+  parted:
+    device: /dev/sdc
+    number: 1
+    state: present
+    part_start: 0%
+    part_end: "{{ part1_size }}GB"
+    fs_type: xfs
+  become: yes
+
+- name: Partition data disk (part2)
+  parted:
+    device: /dev/sdc
+    number: 2
+    state: present
+    part_start: "{{ part1_size }}GB"
+    part_end: "100%"
+    fs_type: ext4
+  become: yes
+  ignore_errors: yes
+
+- name: Create /part1 directory
+  file:
+    path: /part1
+    state: directory
+
+- name: Create /part2 directory
+  file:
+    path: /part2
+    state: directory
+
+- name: Create XFS filesystem on first partition
+  filesystem:
+    force: yes
+    fstype: xfs
+    dev: /dev/sdc1
+  when: disk_info.stdout.find('/dev/sdc1') != -1
+
+- name: Mount first partition
+  mount:
+    path: /part1
+    src: /dev/sdc1
+    fstype: xfs
+    state: mounted
+  when: disk_info.stdout.find('/dev/sdc1') != -1
+
+- name: Create EXT4 filesystem on second partition
+  filesystem:
+    fstype: ext4
+    force: yes
+    dev: /dev/sdc2
+  when: disk_info.stdout.find('/dev/sdc2') != -1 and disk_info.stdout.find('in use by the system') == -1
+
+- name: Mount second partition
+  mount:
+    path: /part2
+    src: /dev/sdc2
+    fstype: ext4
+    state: mounted
+  when: disk_info.stdout.find('/dev/sdc2') != -1 and disk_info.stdout.find('in use by the system') == -1
+
+- name: Persist first partition mount
+  lineinfile:
+    path: /etc/fstab
+    line: "/dev/sdc1 /part1 xfs defaults 0 0"
+    state: present
+  when: disk_info.stdout.find('/dev/sdc1') != -1
+
+- name: Persist second partition mount
+  lineinfile:
+    path: /etc/fstab
+    line: "/dev/sdc2 /part2 ext4 defaults 0 0"
+    state: present
+  when: disk_info.stdout.find('/dev/sdc2') != -1 and disk_info.stdout.find('in use by the system') == -1

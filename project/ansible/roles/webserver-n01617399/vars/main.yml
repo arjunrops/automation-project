@@ -1,0 +1,15 @@
+# List of files to create and their content
+files:
+  - name: vm1.html
+    content: "n01617399-u-vm10.canadacentral.cloudapp.azure.com"
+  - name: vm2.html
+    content: "n01617399-u-vm11.canadacentral.cloudapp.azure.com"
+
+# Directory to copy files
+html_dir: /var/www/html
+
+# File permissions
+file_permissions: "0444"
+node1_fqdn: "n01617399-u-vm10.canadacentral.cloudapp.azure.com"
+node2_fqdn: "n01617399-u-vm11.canadacentral.cloudapp.azure.com"
+playbook_dir: "~/automation/automation-project/ansible/"

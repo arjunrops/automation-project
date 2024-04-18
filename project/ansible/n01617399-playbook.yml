@@ -1,0 +1,21 @@
+---
+- name: n01617399 Playbook
+  hosts: linux
+  gather_facts: yes
+  become: yes
+  tasks:
+    - name: Include datadisk-n01617399 role
+      include_role:
+        name: datadisk-n01617399
+
+    - name: Include profile-n01617399 role
+      include_role:
+        name: profile-n01617399
+
+    - name: Include user-n01617399 role
+      include_role:
+        name: user-n01617399
+
+    - name: Include webserver-n01617399 role
+      include_role:
+        name: webserver-n01617399

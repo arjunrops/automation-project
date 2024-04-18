@@ -1,0 +1,37 @@
+---
+# tasks/main.yml
+- name: Install Apache web server
+  package:
+    name: httpd
+    state: present
+
+- name: Ensure index.html file exists
+  file:
+    path: /var/www/html/index.html
+    state: touch
+  become: yes
+
+- name: Copy vm1.html to node1
+  copy:
+    src: "{{ playbook_dir }}/vm1.html"
+    dest: /var/www/html/index.html
+    mode: '0444'
+  when: inventory_hostname == groups['linux'][0]
+  become: yes
+
+- name: Copy vm2.html to node2
+  copy:
+    src: "{{ playbook_dir }}/vm2.html"
+    dest: /var/www/html/index.html
+    mode: '0444'
+  when: inventory_hostname == groups['linux'][1]
+  become: yes
+
+
+
+- name: Start Apache web server
+  systemd:
+    name: httpd
+    state: started
+    enabled: true
+  notify: restart apache

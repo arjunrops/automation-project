@@ -1,0 +1,8 @@
+[vm_c_1]
+arjunN01617399@n01617399-u-vm10.canadacentral.cloudapp.azure.com
+[vm_c_2]
+arjunN01617399@n01617399-u-vm11.canadacentral.cloudapp.azure.com
+
+[linux:children]
+vm_c_1
+vm_c_2

@@ -1,0 +1,29 @@
+---
+# tasks/main.yml
+- name: Create the cloudadmins group
+  group:
+    name: cloudadmins
+    state: present
+
+- name: Create user accounts
+  user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups | join(',') }}"
+    shell: /bin/bash
+    create_home: yes
+    state: present
+  loop: "{{ users }}"
+
+- name: Generate SSH keys for users
+  user:
+    name: "{{ item.name }}"
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+  loop: "{{ users }}"
+
+- name: Distribute SSH keys
+  authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+  loop: "{{ users }}"

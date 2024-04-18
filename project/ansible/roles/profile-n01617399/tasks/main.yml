@@ -1,0 +1,13 @@
+---
+- name: Append lines to /etc/profile
+  ansible.builtin.blockinfile:
+    path: /etc/profile
+    block: |
+      # Test block added by Ansible - {{ username }}
+      export TMOUT=1500
+  register: profile_updated
+
+- name: Notify user if changes were made
+  ansible.builtin.debug:
+    msg: "Lines appended to /etc/profile."
+  when: profile_updated.changed
